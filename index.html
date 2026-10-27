@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Trust Me</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;width:100%;height:100%;background:#000;overflow:hidden;position:fixed;top:0;left:0;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;overscroll-behavior:none}
+body{font-family:"Press Start 2P",monospace;color:#fff}
+.hidden{display:none!important}
+#app{position:fixed;left:0;top:0;width:100%;height:100%;background:#000;overflow:hidden}
+#screen{position:absolute;display:block;background:#000}
+
+/* Açılış ekranı */
+#intro{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:50}
+#trust{font:300 clamp(15px,4.2vw,20px)/1 -apple-system,"Helvetica Neue","Segoe UI",Arial,sans-serif;letter-spacing:.28em;
+  color:#fff;background:transparent;border:1px solid rgba(255,255,255,.55);border-radius:999px;
+  padding:1.05em 2.4em 1.05em 2.68em;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;
+  animation:pulse 2.6s ease-in-out infinite}
+@keyframes pulse{
+  0%,100%{transform:scale(1);opacity:.5;box-shadow:0 0 0 0 rgba(255,255,255,0)}
+  50%{transform:scale(1.045);opacity:1;box-shadow:0 0 22px 2px rgba(255,255,255,.22)}
+}
+
+/* Dokunmatik kontroller */
+#controls{position:absolute;left:0;right:0;bottom:0;z-index:20;pointer-events:none;
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:0 max(14px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 24px) max(14px,env(safe-area-inset-left));
+  --b:clamp(60px,17vw,80px);--j:clamp(84px,25vw,112px)}
+.pad{display:flex;gap:clamp(10px,3vw,18px)}
+.cbtn{pointer-events:auto;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  width:var(--b);height:var(--b);color:#fff;font:9px/1 "Press Start 2P",monospace;
+  background:rgba(40,20,95,.42);border:4px solid rgba(255,214,240,.78);
+  box-shadow:inset 0 0 0 3px rgba(18,8,52,.55),4px 4px 0 rgba(0,0,0,.35);
+  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.cbtn svg{width:46%;height:46%;shape-rendering:crispEdges;fill:#fff;filter:drop-shadow(2px 2px 0 rgba(20,5,60,.7))}
+.cbtn.jump{width:var(--j);height:var(--j);border-radius:0;background:rgba(120,40,120,.45);border-color:rgba(255,200,235,.85)}
+.cbtn.jump svg{width:34%;height:34%}
+.cbtn.down{background:rgba(255,150,220,.55);transform:translate(3px,3px);box-shadow:inset 0 0 0 3px rgba(18,8,52,.55),1px 1px 0 rgba(0,0,0,.35)}
+#hint{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:8px;color:rgba(255,255,255,.55);z-index:20;pointer-events:none;
+  transition:opacity 1.2s}
+
+/* Final kutusu */
+#dialog{position:absolute;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);z-index:40;
+  width:min(94vw,560px);padding:clamp(14px,3.4vw,24px);text-align:center;background:rgba(10,4,32,.94);border:4px solid #ff4fd8;
+  box-shadow:0 0 0 4px #14083a,0 0 0 8px #6a4cff,0 0 26px 8px rgba(255,79,216,.55),inset 0 0 18px rgba(106,76,255,.45);
+  animation:pop .45s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{transform:translateX(-50%) scale(.6);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+#dTitle{font-size:clamp(9px,2.7vw,15px);line-height:1.6;text-wrap:balance;color:#ffe27a;text-shadow:0 0 10px rgba(255,210,80,.7),2px 2px 0 #5a2a00;margin-bottom:clamp(10px,2.6vw,18px)}
+#dText{font-size:clamp(9px,2.5vw,12px);line-height:1.9;color:#fff;min-height:3.8em}
+#dText .off{visibility:hidden}
+#dialog.typing #dText .on::after{content:"_";animation:blink .5s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+#again{margin-top:clamp(10px,2.6vw,18px);font:clamp(9px,2.6vw,12px)/1 "Press Start 2P",monospace;color:#fff;cursor:pointer;
+  background:#1a0f4a;border:3px solid #5ee6ff;padding:12px 16px;box-shadow:0 0 12px rgba(94,230,255,.6),3px 3px 0 #000;
+  opacity:0;pointer-events:none;transition:opacity .5s;-webkit-appearance:none;appearance:none;outline:none}
+#again.show{opacity:1;pointer-events:auto}
+#again:active{transform:translate(2px,2px)}
+
+@media (orientation:landscape) and (max-height:520px){
+  #dialog{width:min(76vw,560px);padding:10px 14px}
+  #dTitle{font-size:10px;margin-bottom:8px}
+  #dText{font-size:8px;line-height:1.8;min-height:0}
+  #again{font-size:8px;padding:8px 12px;margin-top:8px}
+  .cbtn{--b:58px}
+  #controls{--b:58px;--j:84px;padding-bottom:calc(env(safe-area-inset-bottom) + 12px)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="screen"></canvas>
+
+  <div id="controls" class="hidden">
+    <div class="pad">
+      <div class="cbtn" data-key="left" role="button" aria-label="Sol"><svg viewBox="0 0 12 12"><polygon points="9,1 9,11 2,6"/></svg></div>
+      <div class="cbtn" data-key="right" role="button" aria-label="Sağ"><svg viewBox="0 0 12 12"><polygon points="3,1 3,11 10,6"/></svg></div>
+    </div>
+    <div class="cbtn jump" data-key="jump" role="button" aria-label="Zıpla"><svg viewBox="0 0 12 12"><polygon points="6,2 11,9 1,9"/></svg><span>ZIPLAMA</span></div>
+  </div>
+  <div id="hint" class="hidden">← → / A D : YÜRÜ &nbsp; SPACE : ZIPLA</div>
+
+  <div id="dialog" class="hidden">
+    <div id="dTitle"></div>
+    <div id="dText"><span class="on"></span><span class="off"></span></div>
+    <button id="again" type="button"></button>
+  </div>
+
+  <div id="intro"><button id="trust" type="button">Trust Me</button></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* =====================================================================
+   AYARLAR — değiştirmek istediğin şeyler burada
+   ===================================================================== */
+const CONFIG = {
+  introButton: 'Trust Me',
+  finalTitle: '👑 PRENSES MERVE KURTARILDI! 👑',
+  finalMessage: '',   // istersen buraya bir mesaj yaz; daktilo gibi yazılır. Boşsa yalnızca başlık çıkar
+  againButton: '🔄 Tekrar Oyna',
+  volume: 0.8,
+  speed: 88,          // yürüme hızı (piksel/sn). Büyütürsen bölüm daha kısa sürer
+  autoHop: false,     // true yaparsan borunun önünde kalınca kendiliğinden zıplar
+
+  files: {            // sırayla denenir; hangisi varsa o kullanılır
+    ben:   ['ben.jpeg', 'ben.jpg', 'ben.png'],
+    merve: ['merve.jpeg', 'merve.jpg', 'merve.png'],
+    music: 'motive.mp3'
+  },
+
+  // Profil fotoğrafı yuvarlağı: cx, cy = yuvarlağın merkezi, size = çapı (hepsi resmin kısa kenarına oran, 0-1).
+  // Fotoğrafın tamamı yuvarlak kalacaksa 0.5 / 0.5 / 1.0 bırak. bright: yalnız dosyadan açılırsa parlaklık
+  crop: {
+    ben:   { cx: 0.5, cy: 0.5, size: 1.0, bright: 1.0 },
+    merve: { cx: 0.5, cy: 0.5, size: 1.0, bright: 1.3 }
+  },
+
+  // Mario mantarı yiyip büyüyünce çıkan tek yazı
+  bigText: 'BİGBOY OLUNDU!'
+};
+
+/* =====================================================================
+   Genel sabitler ve yardımcılar
+   ===================================================================== */
+let VW = 320; // görünen genişlik (dikey telefonda daralır)
+const W = 320, H = 180, GROUND = 148, WORLD_W = 1560, MERVE_X = 1405, CASTLE_X = 1330;
+const GRAV = 700, JUMP = 300;
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const easeOut = t => 1 - Math.pow(1 - clamp(t, 0, 1), 3);
+
+function mk(w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  x.imageSmoothingEnabled = false;
+  return [c, x];
+}
+function rng(seed) { return () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296); }
+// Metin matrisini piksel piksel çizer. col: tek renk (string) ya da harf->renk tablosu
+function rows(c, list, x0, y0, col) {
+  list.forEach((r, y) => {
+    for (let i = 0; i < r.length; i++) {
+      const ch = r[i];
+      if (ch === '.') continue;
+      const f = typeof col === 'string' ? col : col[ch];
+      if (!f) continue;
+      c.fillStyle = f;
+      c.fillRect(x0 + i, y0 + y, 1, 1);
+    }
+  });
+}
+
+/* =====================================================================
+   Ana tuval (320x180 mantıksal piksel), ekrana keskin büyütülür
+   ===================================================================== */
+const screenC = $('screen'), sctx = screenC.getContext('2d');
+const buf = document.createElement('canvas'); buf.width = W; buf.height = H;
+const ctx = buf.getContext('2d'); ctx.imageSmoothingEnabled = false;
+
+/* =====================================================================
+   Kafaları hazırla: foto -> 32x32 piksel kafa (oval maske, koyu kenar)
+   ===================================================================== */
+const LEVELS = 12; // renk basamağı (8-bit hissi)
+
+function ovalRows(c, r, color) {
+  c.fillStyle = color;
+  for (let y = 0; y < 32; y++) {
+    const dy = y + 0.5 - 16;
+    if (Math.abs(dy) >= r) continue;
+    const hw = Math.sqrt(r * r - dy * dy);
+    const x0 = Math.round(16 - hw), x1 = Math.round(16 + hw);
+    c.fillRect(x0, y, x1 - x0, 1);
+  }
+}
+
+// Fotoğrafı küçültür (önce 3 kat büyük ara boyut, sonra n x n); keskin düşüşte bozulma olmaz
+function shrink(img, sx, sy, size, filter, n) {
+  const [c, x] = mk(n * 3, n * 3);
+  x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+  if (filter && 'filter' in x) x.filter = filter;
+  x.drawImage(img, sx, sy, size, size, 0, 0, n * 3, n * 3);
+  if ('filter' in x) x.filter = 'none';
+  const [c2, x2] = mk(n, n);
+  x2.imageSmoothingEnabled = true; x2.imageSmoothingQuality = 'high';
+  x2.drawImage(c, 0, 0, n, n);
+  return { c: c2, ctx: x2 };
+}
+
+// Parlaklığı dengeler, renkleri basamaklara ayırır. Dosya yerelden açılıp tuval "kirlenmişse" false döner.
+function enhance(c, n) {
+  try {
+    const d = c.getImageData(0, 0, n, n), p = d.data;
+    let sr = 0, sg = 0, sb = 0, cnt = 0;
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const dx = (x - (n - 1) / 2) / (n / 2), dy = (y - (n - 1) / 2) / (n / 2);
+      if (dx * dx + dy * dy < 0.8) { const i = (y * n + x) * 4; sr += p[i]; sg += p[i + 1]; sb += p[i + 2]; cnt++; }
+    }
+    sr = (sr / cnt) || 1; sg = (sg / cnt) || 1; sb = (sb / cnt) || 1;
+    const lum = 0.3 * sr + 0.59 * sg + 0.11 * sb;
+    // sarı/turuncu ışık tonunu kısmen dengele (ten rengi canlı kalsın)
+    const wr = clamp(Math.pow(lum / sr, 0.5), 0.75, 1.25), wg = clamp(Math.pow(lum / sg, 0.5), 0.75, 1.25), wb = clamp(Math.pow(lum / sb, 0.5), 0.75, 1.35);
+    const k = clamp(140 / lum, 1, 1.9);
+    // hafif keskinleştirme: küçük boyutta yüz hatları kaybolmasın
+    const src = new Uint8ClampedArray(p), A = 0.3;
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const i = (y * n + x) * 4;
+      const l = (y * n + Math.max(0, x - 1)) * 4, rr = (y * n + Math.min(n - 1, x + 1)) * 4;
+      const u = (Math.max(0, y - 1) * n + x) * 4, dd = (Math.min(n - 1, y + 1) * n + x) * 4;
+      for (let ch = 0; ch < 3; ch++) p[i + ch] = src[i + ch] * (1 + 4 * A) - A * (src[l + ch] + src[rr + ch] + src[u + ch] + src[dd + ch]);
+    }
+    const step = 255 / (LEVELS - 1);
+    for (let i = 0; i < p.length; i += 4) {
+      let r = p[i] * k * wr, g = p[i + 1] * k * wg, b = p[i + 2] * k * wb;
+      r = (r - 128) * 1.05 + 128; g = (g - 128) * 1.05 + 128; b = (b - 128) * 1.05 + 128;
+      p[i]     = Math.round(clamp(r, 0, 255) / step) * step;
+      p[i + 1] = Math.round(clamp(g, 0, 255) / step) * step;
+      p[i + 2] = Math.round(clamp(b, 0, 255) / step) * step;
+    }
+    c.putImageData(d, 0, 0);
+    return true;
+  } catch (e) { return false; }
+}
+
+// Kafa tuvali: tam yuvarlak profil fotoğrafı (PD çapında) + üstünde şapka/taç
+const HEAD_W = 40, HEAD_H = 45, HCX = 20, HCY = 26, PD = 30;
+function ellRows(c, cx, cy, rx, ry, col, y0, y1) {
+  c.fillStyle = col;
+  for (let y = y0; y <= y1; y++) {
+    const t = (y + 0.5 - cy) / ry;
+    if (Math.abs(t) >= 1) continue;
+    const hw = rx * Math.sqrt(1 - t * t);
+    const x0 = Math.round(cx - hw), x1 = Math.round(cx + hw);
+    c.fillRect(x0, y, x1 - x0, 1);
+  }
+}
+function headDisc(c, cx, cy, r, col) { ellRows(c, cx, cy, r, r, col, Math.floor(cy - r), Math.ceil(cy + r)); }
+
+function makeHead(img, cfg, kind) {
+  const [out, o] = mk(HEAD_W, HEAD_H);
+  const f = (col, x, y, w, h) => { o.fillStyle = col; o.fillRect(x, y, w, h); };
+  let face = null;
+  if (img) {
+    try {
+      const iw = img.naturalWidth, ih = img.naturalHeight, m = Math.min(iw, ih);
+      const size = Math.min(cfg.size * m, m);
+      const sx = clamp(cfg.cx * iw - size / 2, 0, iw - size);
+      const sy = clamp(cfg.cy * ih - size / 2, 0, ih - size);
+      face = shrink(img, sx, sy, size, null, PD);
+      if (!enhance(face.ctx, PD)) face = shrink(img, sx, sy, size, 'brightness(' + cfg.bright + ') contrast(1.1) saturate(1.2)', PD);
+    } catch (e) { face = null; }
+  }
+  if (!face) { // dosya yoksa: kodla çizilmiş yüz
+    const [c32, x32] = mk(32, 32); (kind === 'ben' ? fbBen : fbMerve)(x32);
+    const [fc0, fx0] = mk(PD, PD); fx0.imageSmoothingEnabled = true; fx0.drawImage(c32, 0, 0, PD, PD);
+    face = { c: fc0 };
+  }
+  // yuvarlak maske (fotoğrafın kendi köşeleri atılır)
+  const [mk1, mx] = mk(HEAD_W, HEAD_H); headDisc(mx, HCX, HCY, PD / 2, '#000');
+  const [fc, fx] = mk(HEAD_W, HEAD_H);
+  fx.drawImage(face.c, HCX - PD / 2, HCY - PD / 2);
+  fx.globalCompositeOperation = 'destination-in';
+  fx.drawImage(mk1, 0, 0);
+  headDisc(o, HCX, HCY, PD / 2 + 1.5, '#2b1b45');
+  o.drawImage(fc, 0, 0);
+
+  if (kind === 'ben') {
+    // Mario şapkası (profil yuvarlağının üstüne oturur)
+    ellRows(o, 20, 12, 16, 10, '#3a0a0a', 1, 12);
+    ellRows(o, 20, 12, 15, 9, '#e52521', 3, 12);
+    f('#ff7a68', 9, 5, 5, 1); f('#ff7a68', 6, 7, 2, 1); f('#b01410', 30, 7, 2, 4);
+    ellRows(o, 20.5, 7, 4.6, 4.6, '#bdbdbd', 2, 11);
+    ellRows(o, 20.5, 7, 3.9, 3.9, '#ffffff', 3, 11);
+    rows(o, ['X...X', 'XX.XX', 'X.X.X', 'X...X', 'X...X'], 18, 5, '#e52521');
+    f('#3a0a0a', 3, 11, 34, 4); f('#e52521', 4, 11, 32, 2); f('#b01410', 4, 13, 32, 1);
+  } else {
+    // Prenses tacı
+    f('#7a4a00', 8, 3, 5, 6); f('#ffd23a', 9, 4, 3, 5);
+    f('#7a4a00', 16, 0, 8, 9); f('#ffd23a', 17, 1, 6, 8);
+    f('#7a4a00', 27, 3, 5, 6); f('#ffd23a', 28, 4, 3, 5);
+    f('#7a4a00', 7, 8, 26, 7); f('#ffd23a', 8, 9, 24, 5);
+    f('#fff2a0', 8, 9, 24, 1); f('#c88a00', 8, 13, 24, 1);
+    f('#ffffff', 9, 1, 2, 2); f('#ffffff', 29, 1, 2, 2);
+    f('#ff3f64', 19, 10, 2, 3); f('#5ee6ff', 13, 10, 2, 2); f('#5ee6ff', 25, 10, 2, 2);
+  }
+  return out;
+}
+
+// Dosya yoksa kullanılan, kodla çizilmiş tatlı yüzler
+function fbBen(c) {
+  c.fillStyle = '#f2c496'; c.fillRect(0, 0, 32, 32);
+  c.fillStyle = '#3b2416'; c.fillRect(0, 0, 32, 9);
+  c.fillStyle = '#2b1a12'; c.fillRect(9, 15, 3, 4); c.fillRect(20, 15, 3, 4);
+  c.fillStyle = '#fff'; c.fillRect(9, 15, 1, 1); c.fillRect(20, 15, 1, 1);
+  c.fillStyle = '#3b2416'; c.fillRect(8, 13, 5, 1); c.fillRect(19, 13, 5, 1); c.fillRect(11, 22, 10, 2);
+  c.fillStyle = '#b0504a'; c.fillRect(13, 25, 6, 1);
+  c.fillStyle = '#f09a80'; c.fillRect(5, 20, 3, 2); c.fillRect(24, 20, 3, 2);
+}
+function fbMerve(c) {
+  c.fillStyle = '#f0c0a0'; c.fillRect(0, 0, 32, 32);
+  c.fillStyle = '#241414'; c.fillRect(0, 0, 32, 8); c.fillRect(0, 0, 4, 20); c.fillRect(28, 0, 4, 20);
+  c.fillStyle = '#fff'; c.fillRect(8, 15, 5, 4); c.fillRect(19, 15, 5, 4);
+  c.fillStyle = '#2b1414'; c.fillRect(10, 15, 3, 4); c.fillRect(21, 15, 3, 4); c.fillRect(8, 14, 5, 1); c.fillRect(19, 14, 5, 1);
+  c.fillStyle = '#d03a6a'; c.fillRect(12, 24, 8, 3);
+  c.fillStyle = '#f09a90'; c.fillRect(5, 21, 4, 3); c.fillRect(23, 21, 4, 3);
+}
+
+const heads = {
+  ben:   makeHead(null, CONFIG.crop.ben, 'ben'),
+  merve: makeHead(null, CONFIG.crop.merve, 'merve')
+};
+function tryLoad(list) {
+  return list.reduce((p, src) => p.then(img => img || new Promise(res => {
+    const im = new Image();
+    im.onload = () => res(im.naturalWidth ? im : null);
+    im.onerror = () => res(null);
+    im.src = src;
+  })), Promise.resolve(null));
+}
+tryLoad(CONFIG.files.ben).then(img => { if (img) heads.ben = makeHead(img, CONFIG.crop.ben, 'ben'); });
+tryLoad(CONFIG.files.merve).then(img => { if (img) heads.merve = makeHead(img, CONFIG.crop.merve, 'merve'); });
+
+/* =====================================================================
+   Piksel sprite'lar (hepsi kodla)
+   ===================================================================== */
+const HMASK = ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...'];
+const SPR = {};
+
+(function buildSprites() {
+  // Kalp 11x10
+  let [c, x] = mk(11, 10);
+  rows(x, ['..ooo.ooo..', '.oRRRoRRRo.', 'oRWRRRRRRRo', 'oRWRRRRRRRo', 'oRRRRRRRRRo', '.oRRRRRRRo.', '..oRRRRRo..', '...oRRRo...', '....oRo....', '.....o.....'],
+       0, 0, { o: '#5a0f3a', R: '#ff4f8b', W: '#ffd0e4' });
+  SPR.heart = c;
+
+  // Mantar 14x13
+  [c, x] = mk(14, 13);
+  rows(x, ['....oooooo....', '..ooRRRRRRoo..', '.oRRWWRRRWWRo.', 'oRRWWWRRRWWWRo', 'oRRWWWRRRWWWRo', 'oRRRWRRRRRWRRo',
+           'oRRRRRRRRRRRRo', '.oooooooooooo.', '..oSSSSSSSSo..', '..oSSKSSKSSo..', '..oSSKSSKSSo..', '..oSSSSSSSSo..', '...oooooooo...'],
+       0, 0, { o: '#3a1020', R: '#ff4040', W: '#ffffff', S: '#ffe8c8', K: '#3a1020' });
+  SPR.mush = c;
+
+  // ? bloğu (3 hâl)
+  const glyph = ['.oooo.', 'oo..oo', '....oo', '...oo.', '..oo..', '..oo..', '......', '..oo..', '..oo..'];
+  function block(pal, q) {
+    const [bc, bx] = mk(16, 16);
+    bx.fillStyle = pal.o; bx.fillRect(0, 0, 16, 16);
+    bx.fillStyle = pal.b; bx.fillRect(1, 1, 14, 14);
+    bx.fillStyle = pal.l; bx.fillRect(1, 1, 14, 1); bx.fillRect(1, 1, 1, 14);
+    bx.fillStyle = pal.d; bx.fillRect(1, 14, 14, 1); bx.fillRect(14, 1, 1, 14);
+    bx.fillStyle = pal.o; [[2, 2], [13, 2], [2, 13], [13, 13]].forEach(p => bx.fillRect(p[0], p[1], 1, 1));
+    if (q) rows(bx, glyph, 5, 3, pal.g);
+    return bc;
+  }
+  SPR.q0 = block({ o: '#6b3a00', b: '#ffc83a', l: '#ffe58a', d: '#d18a00', g: '#6b3a00' }, true);
+  SPR.q1 = block({ o: '#6b3a00', b: '#ffe27a', l: '#fff6c0', d: '#f0b020', g: '#7a4a00' }, true);
+  SPR.used = block({ o: '#2e1c0e', b: '#7d5f48', l: '#9a7a60', d: '#5e4532', g: '#000' }, false);
+
+  // Yer karosu 16x32 (çimen + mor tuğla)
+  [c, x] = mk(16, 32);
+  x.fillStyle = '#7a4c9c'; x.fillRect(0, 0, 16, 32);
+  x.fillStyle = '#5a3480'; x.fillRect(0, 8, 16, 1); x.fillRect(0, 16, 16, 1); x.fillRect(0, 24, 16, 1);
+  [[7, 4], [3, 12], [11, 12], [7, 20], [3, 28], [11, 28]].forEach(p => x.fillRect(p[0], p[1] + 1, 1, 4));
+  x.fillStyle = '#9a6cbc'; x.fillRect(0, 9, 16, 1); x.fillRect(0, 17, 16, 1); x.fillRect(0, 25, 16, 1);
+  x.fillStyle = '#2a8f6e'; x.fillRect(0, 0, 16, 6);
+  x.fillStyle = '#5ee6a8'; x.fillRect(0, 0, 16, 3);
+  x.fillStyle = '#2a8f6e'; [1, 5, 9, 13].forEach(i => x.fillRect(i, 6, 2, 2));
+  x.fillStyle = '#8affca'; [2, 8, 13].forEach(i => x.fillRect(i, 0, 1, 1));
+  SPR.ground = c;
+
+  // Bulut
+  function cloud(w, h, seed) {
+    const [cc, cx] = mk(w, h), r = rng(seed), n = 4;
+    for (let y = 0; y < h; y++) {
+      cx.fillStyle = y >= h - 3 ? '#b99be8' : '#e6d4ff';
+      for (let i = 0; i < n; i++) {
+        const rad = h * (0.38 + ((seed * (i + 3)) % 7) / 20);
+        const mx = w * (0.2 + 0.6 * i / (n - 1)), my = h - rad;
+        const dy = y + 0.5 - my;
+        if (Math.abs(dy) >= rad) continue;
+        const hw = Math.sqrt(rad * rad - dy * dy);
+        cx.fillRect(Math.round(mx - hw), y, Math.round(2 * hw), 1);
+      }
+    }
+    r();
+    return cc;
+  }
+  SPR.clouds = [cloud(46, 16, 3), cloud(34, 12, 5), cloud(58, 18, 7)];
+
+  // Gökyüzü (bantlı, tırtıklı geçişli)
+  [c, x] = mk(W, H);
+  const bands = [['#0d0626', 0], ['#150a3a', 16], ['#1e1050', 34], ['#2c1a6e', 52], ['#40268a', 70], ['#5d3499', 88],
+                 ['#81429f', 104], ['#a8559f', 118], ['#d06a9c', 130], ['#f08fa0', 140], ['#f08fa0', H]];
+  for (let i = 0; i < bands.length - 1; i++) {
+    x.fillStyle = bands[i][0]; x.fillRect(0, bands[i][1], W, bands[i + 1][1] - bands[i][1]);
+    if (i + 1 < bands.length - 1) {
+      const yb = bands[i + 1][1]; x.fillStyle = bands[i + 1][0];
+      for (let k = 0; k < 4; k++) for (let xx = 0; xx < W; xx += 2) if ((((xx >> 1) + (k >> 1)) & 1) === 0) x.fillRect(xx, yb - 4 + k, 2, 1);
+    }
+  }
+  SPR.sky = c;
+
+  // Tepeler (paralaks katmanları)
+  function hills(f, base, amp, col, edge, seed, trees) {
+    const lw = Math.ceil(W + (WORLD_W - W) * f), [hc, hx] = mk(lw, H), r = rng(seed);
+    const p1 = r() * 6, p2 = r() * 6, p3 = r() * 6, hy = [];
+    for (let i = 0; i < lw; i++) {
+      const hh = base + Math.sin(i * 0.012 + p1) * amp + Math.sin(i * 0.031 + p2) * amp * 0.5 + Math.sin(i * 0.007 + p3) * amp * 0.8;
+      const y = Math.round(hh / 3) * 3; hy.push(y);
+      hx.fillStyle = col; hx.fillRect(i, y, 1, H - y);
+      hx.fillStyle = edge; hx.fillRect(i, y, 1, 2);
+    }
+    if (trees) {
+      hx.fillStyle = trees;
+      for (let i = 10; i < lw - 10; i += Math.floor(14 + r() * 26)) {
+        const y = hy[i], hgt = 3 + Math.floor(r() * 3);
+        for (let j = 0; j < hgt; j++) hx.fillRect(i - (1 + j), y - 4 - (hgt - j) * 3 + 3, 2 + j * 2, 3);
+        hx.fillRect(i, y - 2, 1, 3);
+      }
+    }
+    return hc;
+  }
+  SPR.hillFar = hills(0.12, 118, 14, '#4a2f86', '#6a49a8', 11, null);
+  SPR.hillNear = hills(0.3, 130, 10, '#2b1963', '#43308a', 23, '#1d0f4a');
+
+  // Yin-Yang (dönen, parlayan) - 32 kare
+  SPR.yin = [];
+  const R = 14;
+  for (let f = 0; f < 32; f++) {
+    const [yc, yx] = mk(48, 48), th = f / 32 * Math.PI * 2, cs = Math.cos(th), sn = Math.sin(th);
+    const id = yx.createImageData(48, 48), d = id.data;
+    for (let py = 0; py < 48; py++) for (let px = 0; px < 48; px++) {
+      const u = px + 0.5 - 24, v = py + 0.5 - 24, dist = Math.sqrt(u * u + v * v), i = (py * 48 + px) * 4;
+      let rgb = null, a = 255;
+      if (dist <= 16) {
+        if (dist > R) rgb = [244, 236, 255];
+        else {
+          const uu = u * cs + v * sn, vv = -u * sn + v * cs;
+          const d1 = Math.hypot(uu, vv + R / 2), d2 = Math.hypot(uu, vv - R / 2);
+          let white = uu < 0;
+          if (d1 < R / 2) white = false;
+          if (d2 < R / 2) white = true;
+          if (d1 < 2.2) white = true;
+          if (d2 < 2.2) white = false;
+          rgb = white ? [244, 236, 255] : [26, 15, 58];
+        }
+      } else if (dist <= 24) {
+        a = Math.floor(clamp(1 - (dist - 16) / 8, 0, 1) * 4) * 14; rgb = [255, 200, 255];
+      }
+      if (rgb) { d[i] = rgb[0]; d[i + 1] = rgb[1]; d[i + 2] = rgb[2]; d[i + 3] = a; }
+    }
+    yx.putImageData(id, 0, 0);
+    SPR.yin.push(yc);
+  }
+
+  // Kale 140x112
+  [c, x] = mk(140, 112);
+  const O = '#2f1d5c', B = '#9a7ccc', L = '#b89ae6', D = '#6c4fa3';
+  function wall(x0, y0, w, h) {
+    x.fillStyle = O; x.fillRect(x0 - 1, y0 - 1, w + 2, h + 1);
+    x.fillStyle = B; x.fillRect(x0, y0, w, h);
+    x.fillStyle = D;
+    for (let yy = y0 + 4, k = 0; yy < y0 + h; yy += 8, k++) {
+      x.fillRect(x0, yy, w, 1);
+      for (let xx = x0 + (k % 2) * 6 + 3; xx < x0 + w; xx += 12) x.fillRect(xx, yy - 4 + 1, 1, 4);
+    }
+    x.fillStyle = L; x.fillRect(x0, y0, 1, h); x.fillRect(x0, y0, w, 1);
+  }
+  function crown(x0, w, y) {
+    for (let xx = x0; xx + 6 <= x0 + w; xx += 10) {
+      x.fillStyle = O; x.fillRect(xx - 1, y - 7, 8, 8);
+      x.fillStyle = B; x.fillRect(xx, y - 6, 6, 6);
+      x.fillStyle = L; x.fillRect(xx, y - 6, 6, 1);
+    }
+  }
+  wall(28, 52, 84, 60); crown(30, 80, 52);
+  wall(50, 28, 40, 84); crown(52, 36, 28);
+  wall(0, 22, 34, 90); crown(2, 30, 22);
+  wall(106, 22, 34, 90); crown(108, 30, 22);
+  // kapı
+  x.fillStyle = O; x.fillRect(57, 82, 26, 30); x.fillRect(59, 78, 22, 4);
+  x.fillStyle = '#1a0f3a'; x.fillRect(59, 84, 22, 28); x.fillRect(61, 80, 18, 4); x.fillRect(63, 78, 14, 2);
+  x.fillStyle = '#2f1d5c'; x.fillRect(70, 80, 1, 32); x.fillRect(59, 96, 22, 1);
+  x.fillStyle = '#ffd23a'; x.fillRect(66, 98, 2, 2); x.fillRect(73, 98, 2, 2);
+  // pencereler
+  function win(wx, wy, w, h) {
+    x.fillStyle = O; x.fillRect(wx - 1, wy - 1, w + 2, h + 2);
+    x.fillStyle = '#ffe27a'; x.fillRect(wx, wy, w, h);
+    x.fillStyle = '#fff6c0'; x.fillRect(wx, wy, w, 2);
+    x.fillStyle = O; x.fillRect(wx + (w >> 1), wy, 1, h);
+  }
+  win(13, 48, 8, 12); win(119, 48, 8, 12); win(66, 44, 8, 13); win(36, 68, 6, 9); win(98, 68, 6, 9);
+  win(13, 76, 8, 12); win(119, 76, 8, 12);
+  // bayrak
+  x.fillStyle = '#e8e0ff'; x.fillRect(69, 4, 2, 22);
+  x.fillStyle = O; x.fillRect(70, 3, 16, 12);
+  x.fillStyle = '#ff6fae'; x.fillRect(71, 4, 14, 10);
+  rows(x, HMASK, 74, 6, '#ffffff');
+  SPR.castle = c;
+
+  // Küçük kalp maskesi (konfeti)
+  SPR.hmask = HMASK;
+})();
+
+const pipeCache = {};
+function pipeSprite(h) {
+  if (pipeCache[h]) return pipeCache[h];
+  const [c, x] = mk(32, h), o = '#0b3d1c', b = '#2ecf5d', l = '#9bffb0', d = '#1a8f40';
+  x.fillStyle = o; x.fillRect(2, 12, 28, h - 12);
+  x.fillStyle = b; x.fillRect(3, 12, 26, h - 12);
+  x.fillStyle = l; x.fillRect(5, 12, 4, h - 12); x.fillRect(11, 12, 1, h - 12);
+  x.fillStyle = d; x.fillRect(23, 12, 6, h - 12);
+  x.fillStyle = o; x.fillRect(0, 0, 32, 12);
+  x.fillStyle = b; x.fillRect(1, 1, 30, 10);
+  x.fillStyle = l; x.fillRect(3, 1, 5, 10); x.fillRect(10, 1, 1, 10);
+  x.fillStyle = d; x.fillRect(24, 1, 7, 10);
+  return (pipeCache[h] = c);
+}
+
+/* =====================================================================
+   Karakter çizimleri
+   ===================================================================== */
+const [mCanvas, mc] = mk(48, 70);
+const SKIN = '#f8c89c';
+function marioSprite(air, pose) {
+  mc.clearRect(0, 0, 48, 70);
+  const cx = 24, fy = 66, R = '#e52521', B = '#2748c8', BR = '#6b3a14';
+  const f = (c, x, y, w, h) => { mc.fillStyle = c; mc.fillRect(x, y, w, h); };
+  if (air) {
+    f(B, cx - 10, fy - 9, 5, 6); f(BR, cx - 12, fy - 4, 7, 4);
+    f(B, cx + 5, fy - 9, 5, 6);  f(BR, cx + 5, fy - 4, 7, 4);
+  } else if (pose === 0) {
+    f(B, cx - 8, fy - 8, 5, 4); f(BR, cx - 10, fy - 5, 7, 3);
+    f(B, cx + 1, fy - 8, 5, 5); f(BR, cx + 1, fy - 3, 7, 3);
+  } else if (pose === 2) {
+    f(B, cx - 6, fy - 8, 5, 5); f(BR, cx - 8, fy - 3, 7, 3);
+    f(B, cx + 3, fy - 8, 5, 4); f(BR, cx + 3, fy - 5, 7, 3);
+  } else {
+    f(B, cx - 6, fy - 8, 5, 5); f(BR, cx - 8, fy - 3, 7, 3);
+    f(B, cx + 1, fy - 8, 5, 5); f(BR, cx + 1, fy - 3, 7, 3);
+  }
+  // gövde
+  f(R, cx - 7, fy - 21, 14, 9);
+  f(B, cx - 6, fy - 14, 12, 7);
+  f(B, cx - 4, fy - 18, 8, 5);
+  f('#ffd23a', cx - 4, fy - 17, 2, 2); f('#ffd23a', cx + 2, fy - 17, 2, 2);
+  if (!air) {
+    const sw = pose === 0 ? 1 : pose === 2 ? -1 : 0;
+    f(R, cx - 10, fy - 20 + sw, 3, 7); f(SKIN, cx - 10, fy - 13 + sw, 3, 3);
+    f(R, cx + 7, fy - 20 - sw, 3, 7);  f(SKIN, cx + 7, fy - 13 - sw, 3, 3);
+  } else { // zıplarken kollar havada (yuvarlağın arkasından yukarı uzanır)
+    f(R, cx - 10, fy - 20, 3, 3); f(R, cx - 13, fy - 24, 3, 4); f(R, cx - 16, fy - 28, 3, 4); f(R, cx - 19, fy - 32, 3, 4); f(SKIN, cx - 23, fy - 39, 5, 6);
+    f(R, cx + 7, fy - 20, 3, 3);  f(R, cx + 10, fy - 24, 3, 4); f(R, cx + 13, fy - 28, 3, 4); f(R, cx + 16, fy - 32, 3, 4); f(SKIN, cx + 18, fy - 39, 5, 6);
+  }
+  const hb = (!air && (pose === 0 || pose === 2)) ? 1 : 0;
+  mc.drawImage(heads.ben, cx - 20, fy - 63 + hb);
+  return mCanvas;
+}
+
+function drawMerve(sx, y, t, hop, face) {
+  const x = Math.round(sx), yy = Math.round(y - hop), c = ctx;
+  const f = (col, a, b, w, h) => { c.fillStyle = col; c.fillRect(a, b, w, h); };
+  // elbise
+  for (let r = 0; r < 20; r++) {
+    const w = Math.round(12 + r * 0.85), x0 = x - (w >> 1), y0 = yy - 20 + r;
+    f('#c63a82', x0 - 1, y0, w + 2, 1);
+    f('#ff6fae', x0, y0, w, 1);
+    f('#ffa8d0', x0 + 2, y0, 2, 1);
+    f('#e0508f', x0 + w - 3, y0, 3, 1);
+  }
+  f('#ffe6f3', x - 14, yy - 2, 28, 2);
+  for (let i = -13; i < 13; i += 4) f('#ffb0d4', x + i, yy - 2, 2, 1);
+  // üst gövde ve kollar
+  f('#ff6fae', x - 6, yy - 25, 12, 6); f('#fff', x - 4, yy - 26, 8, 2);
+  f(SKIN, x - 10, yy - 24, 3, 9); f(SKIN, x + 7, yy - 24, 3, 9);
+  f('#ff6fae', x - 10, yy - 25, 4, 3); f('#ff6fae', x + 6, yy - 25, 4, 3);
+  f('#ff3f94', x - 7, yy - 1, 6, 2); f('#ff3f94', x + 1, yy - 1, 6, 2);
+  // kafa (profil yuvarlağı + taç)
+  const sway = Math.round(Math.sin(t * 3) * 0.6);
+  c.drawImage(heads.merve, x - 20 + sway, yy - 67);
+  // başının üstünde yanıp sönen kalp
+  if (Math.floor(t * 2.2) % 2 === 0) c.drawImage(SPR.heart, x - 6, yy - 83 + Math.round(Math.sin(t * 4) * 2));
+}
+
+/* =====================================================================
+   Bölüm
+   ===================================================================== */
+const LEVEL = {
+  pipes:  [{ x: 420, h: 28 }, { x: 830, h: 36 }, { x: 1160, h: 28 }],
+  blocks: [{ x: 236, y: 56 }, { x: 636, y: 56 }, { x: 1000, y: 56 }],
+  hearts: [
+    [120, 112], [142, 112], [164, 112],
+    [300, 112], [322, 112],
+    [392, 92], [410, 78], [434, 72], [458, 78], [476, 92],
+    [510, 112], [530, 112], [550, 112],
+    [590, 112], [610, 112], [684, 112], [706, 112],
+    [800, 88], [820, 72], [846, 64], [872, 72], [892, 88],
+    [930, 112], [950, 112], [970, 112],
+    [1040, 112], [1062, 112],
+    [1132, 92], [1150, 78], [1176, 72], [1202, 78], [1220, 92],
+    [1255, 112], [1280, 112], [1305, 112]
+  ]
+};
+
+/* =====================================================================
+   Durum
+   ===================================================================== */
+let T = 0, state = 'wait', stateT = 0, camX = 0, cam = 0, love = 0, heartsGot = 0, msgIdx = 0;
+let P, merve, blocks, pipes, solids, hearts, mushrooms, parts, sparts, rockets, ftexts;
+let confAcc = 0, fwAcc = 0, dialogShown = false;
+const stars = (() => { const r = rng(99), a = []; for (let i = 0; i < 70; i++) a.push({ x: Math.floor(r() * W), y: 3 + Math.floor(r() * 108), ph: r() * 6, big: i % 6 === 0 }); return a; })();
+const clouds = [{ s: 0, x: 20, y: 24, v: 3 }, { s: 1, x: 130, y: 50, v: 2 }, { s: 2, x: 230, y: 18, v: 4 }, { s: 0, x: 300, y: 64, v: 2.5 }, { s: 1, x: 80, y: 80, v: 1.5 }];
+const HC = ['#ff4f8b', '#ff7eb6', '#ffb3d6', '#ff6fae'];
+const CONF = ['#ff4f8b', '#ffd23a', '#5ee6ff', '#8cff6a', '#c58cff', '#ff9a4a', '#ffffff'];
+
+function resetGame() {
+  P = { x: 40, y: GROUND, vx: 0, vy: 0, face: 1, onGround: true, scale: 1, target: 1, coyote: 0, buf: 0, jumpPrev: false, walkT: 0, auto: 0 };
+  merve = { x: MERVE_X, hop: 0 };
+  blocks = LEVEL.blocks.map(b => ({ x: b.x, y: b.y, w: 16, h: 16, isBlock: true, used: false, bump: 0 }));
+  pipes = LEVEL.pipes.map(p => ({ x: p.x, y: GROUND - p.h, w: 32, h: p.h, spr: pipeSprite(p.h) }));
+  solids = pipes.concat(blocks);
+  hearts = LEVEL.hearts.map((h, i) => ({ x: h[0], y: h[1], got: false, ph: i * 0.7 }));
+  mushrooms = []; parts = []; sparts = []; rockets = []; ftexts = [];
+  love = 0; heartsGot = 0; msgIdx = 0; camX = 0; cam = 0; confAcc = 0; fwAcc = 0; dialogShown = false;
+}
+
+/* =====================================================================
+   Girdi (klavye + dokunmatik, çoklu dokunuş)
+   ===================================================================== */
+const kb = { left: false, right: false, jump: false };
+const vt = { left: false, right: false, jump: false };
+const input = {
+  get left() { return kb.left || vt.left; },
+  get right() { return kb.right || vt.right; },
+  get jump() { return kb.jump || vt.jump; }
+};
+const keyMap = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'jump', KeyW: 'jump' };
+window.addEventListener('keydown', e => {
+  const k = keyMap[e.code];
+  if (!k) return;
+  if (e.target && e.target.id === 'again' && e.code === 'Space') return;
+  e.preventDefault(); kb[k] = true; ensureAudio();
+});
+window.addEventListener('keyup', e => { const k = keyMap[e.code]; if (k) { e.preventDefault(); kb[k] = false; } });
+window.addEventListener('blur', () => { kb.left = kb.right = kb.jump = false; touchMap.clear(); syncVT(); });
+
+const touchMap = new Map();
+const ctrlEl = $('controls');
+function syncVT() {
+  vt.left = vt.right = vt.jump = false;
+  touchMap.forEach(k => { if (k) vt[k] = true; });
+  ctrlEl.querySelectorAll('.cbtn').forEach(b => b.classList.toggle('down', !!vt[b.dataset.key]));
+}
+function keyAt(x, y) {
+  const el = document.elementFromPoint(x, y), b = el && el.closest ? el.closest('[data-key]') : null;
+  return b ? b.dataset.key : null;
+}
+ctrlEl.querySelectorAll('.cbtn').forEach(b => {
+  b.addEventListener('touchstart', e => {
+    e.preventDefault(); ensureAudio();
+    for (const t of e.changedTouches) touchMap.set(t.identifier, keyAt(t.clientX, t.clientY) || b.dataset.key);
+    syncVT();
+  }, { passive: false });
+  b.addEventListener('mousedown', e => { e.preventDefault(); ensureAudio(); touchMap.set('mouse', b.dataset.key); syncVT(); });
+});
+window.addEventListener('touchmove', e => {
+  e.preventDefault();
+  let ch = false;
+  for (const t of e.changedTouches) if (touchMap.has(t.identifier)) { touchMap.set(t.identifier, keyAt(t.clientX, t.clientY)); ch = true; }
+  if (ch) syncVT();
+}, { passive: false });
+function endTouch(e) {
+  let ch = false;
+  for (const t of e.changedTouches) if (touchMap.delete(t.identifier)) ch = true;
+  if (ch) syncVT();
+}
+window.addEventListener('touchend', endTouch);
+window.addEventListener('touchcancel', endTouch);
+window.addEventListener('mouseup', () => { if (touchMap.delete('mouse')) syncVT(); });
+document.addEventListener('contextmenu', e => e.preventDefault());
+['gesturestart', 'gesturechange', 'gestureend'].forEach(n => document.addEventListener(n, e => e.preventDefault()));
+document.addEventListener('dblclick', e => e.preventDefault());
+
+/* =====================================================================
+   Ses
+   ===================================================================== */
+const audio = new Audio();
+audio.loop = true; audio.preload = 'auto'; audio.volume = CONFIG.volume;
+audio.setAttribute('playsinline', '');
+audio.src = CONFIG.files.music;
+let started = false, ac = null, webMusic = null;
+
+// Yedek yol: bazı sunucular/tarayıcılar <audio> için gereken kısmi indirmeyi vermez.
+// Böyle olursa şarkıyı baştan indirip Web Audio ile çalarız.
+// <audio> sağlıklı mı: çalıyor, ilerliyor ve başa sarılabiliyor (döngü için gerekli)
+function htmlMusicOk() { return !audio.paused && !audio.error && audio.currentTime > 0.3 && isFinite(audio.duration); }
+function startWebMusic() {
+  if (webMusic || !ac) return;
+  webMusic = 'loading';
+  fetch(CONFIG.files.music).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+    .then(b => new Promise((ok, no) => ac.decodeAudioData(b, ok, no)))
+    .then(buf => {
+      if (htmlMusicOk()) { webMusic = null; return; } // arada <audio> düzgün açıldıysa çift çalmasın
+      const src = ac.createBufferSource(), g = ac.createGain();
+      src.buffer = buf; src.loop = true; g.gain.value = CONFIG.volume;
+      src.connect(g); g.connect(ac.destination);
+      src.start(0, audio.currentTime > 0.5 ? audio.currentTime % buf.duration : 0); // kaldığı yerden devam
+      webMusic = src; audio.pause();
+    }).catch(() => { webMusic = null; });
+}
+function ensureAudio() {
+  if (!started) return;
+  if (ac && ac.state === 'suspended') ac.resume();
+  if (webMusic) return;
+  if (audio.paused && !audio.error) { const p = audio.play(); if (p && p.catch) p.catch(() => {}); }
+}
+audio.addEventListener('error', startWebMusic);
+document.addEventListener('visibilitychange', () => {
+  if (!started) return;
+  if (document.hidden) { audio.pause(); if (ac && ac.state === 'running') ac.suspend(); }
+  else ensureAudio();
+});
+
+/* =====================================================================
+   Parçacıklar ve yazılar
+   ===================================================================== */
+function burst(x, y, n, cols, sp, list) {
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, Math.PI * 2), s = rand(sp * 0.4, sp);
+    (list || parts).push({ type: 'spark', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 10, g: 120, life: rand(0.4, 0.9), max: 0.9, col: pick(cols), sz: 2 });
+  }
+}
+function addText(s, delay) { ftexts.push({ s, t: -(delay || 0), x: 0, y: 0, set: false }); }
+
+function drawPart(p, ox) {
+  const a = clamp(p.life / p.max * 1.6, 0, 1), x = Math.round(p.x - ox), y = Math.round(p.y);
+  ctx.globalAlpha = a;
+  if (p.type === 'spark') { ctx.fillStyle = p.col; ctx.fillRect(x, y, p.sz, p.sz); }
+  else if (p.type === 'heart') rows(ctx, HMASK, x - 3, y - 3, p.col);
+  else if (p.type === 'star') { ctx.fillStyle = p.col; ctx.fillRect(x - 1, y, 3, 1); ctx.fillRect(x, y - 1, 1, 3); }
+  else if (p.type === 'conf') { ctx.fillStyle = p.col; if (Math.floor(p.life * 6 + p.x) % 2) ctx.fillRect(x, y, 3, 2); else ctx.fillRect(x, y, 2, 3); }
+  ctx.globalAlpha = 1;
+}
+function stepParts(list, dt) {
+  for (let i = list.length - 1; i >= 0; i--) {
+    const p = list[i];
+    p.life -= dt; p.vy += (p.g || 0) * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.life <= 0) list.splice(i, 1);
+  }
+}
+
+/* =====================================================================
+   Oyun mantığı
+   ===================================================================== */
+function hitBlock(b) {
+  b.bump = 1;
+  if (b.used) return;
+  b.used = true;
+  mushrooms.push({ x: b.x + 8, y0: b.y + 10, y: b.y + 10, home: b.y - 20, t: 0, ph: rand(0, 6), dead: false });
+  for (let i = 0; i < 5; i++) parts.push({ type: 'heart', x: b.x + 8, y: b.y, vx: rand(-34, 34), vy: rand(-120, -70), g: 150, life: 1.2, max: 1.2, col: pick(HC) });
+  burst(b.x + 8, b.y, 10, ['#fff6a0', '#ffd23a', '#ffffff'], 60);
+}
+
+function eatMushroom(m) {
+  m.dead = true; love += 100;
+  if (P.target === 1) { P.target = 1.25; addText(CONFIG.bigText, 0); }
+  burst(m.x, m.y, 16, ['#ffd23a', '#ff7eb6', '#ffffff', '#5ee6ff'], 80);
+}
+
+function updatePlayer(dt, dir, canJump, auto) {
+  P.scale += (P.target - P.scale) * Math.min(1, dt * 8);
+  if (Math.abs(P.target - P.scale) < 0.005) P.scale = P.target;
+  const hw = 7 * P.scale, h = 52 * P.scale;
+  P.vx += (dir * CONFIG.speed - P.vx) * Math.min(1, dt * (dir ? 14 : 20));
+  if (!dir && Math.abs(P.vx) < 2) P.vx = 0;
+  if (dir) P.face = dir;
+
+  const jd = canJump && input.jump;
+  if (jd && !P.jumpPrev) P.buf = 0.12;
+  P.jumpPrev = jd;
+  P.buf -= dt;
+  if (P.onGround) P.coyote = 0.09; else P.coyote -= dt;
+  if (P.buf > 0 && P.coyote > 0) { P.vy = -JUMP; P.buf = 0; P.coyote = 0; P.onGround = false; }
+  P.vy = Math.min(P.vy + GRAV * dt, 520);
+
+  // yatay hareket ve boru/blok yanları
+  P.x = clamp(P.x + P.vx * dt, hw + 4, WORLD_W - hw - 4);
+  let blocked = 0;
+  for (const r of solids) {
+    if (P.x + hw > r.x && P.x - hw < r.x + r.w && P.y > r.y && P.y - h < r.y + r.h) {
+      if (!r.isBlock && P.y - r.y <= 7 && P.vy >= 0) { P.y = r.y; P.vy = 0; }
+      else {
+        if (P.x < r.x + r.w / 2) { P.x = r.x - hw; blocked = 1; } else { P.x = r.x + r.w + hw; blocked = -1; }
+        P.vx = 0;
+      }
+    }
+  }
+  if (CONFIG.autoHop && auto && blocked && dir === blocked && P.onGround) { P.vy = -JUMP; P.onGround = false; }
+
+  // dikey hareket
+  const py = P.y;
+  P.y += P.vy * dt;
+  P.onGround = false;
+  if (P.vy < 0) {
+    for (const b of blocks) {
+      const bot = b.y + b.h;
+      if (P.x + hw + 9 > b.x && P.x - hw - 9 < b.x + b.w && py - h >= bot - 1 && P.y - h < bot) {
+        P.y = bot + h; P.vy = 0; hitBlock(b); break;
+      }
+    }
+  }
+  for (const r of solids) {
+    if (P.x + hw > r.x && P.x - hw < r.x + r.w && P.y > r.y && P.y - h < r.y + r.h) {
+      if (P.vy >= 0 && py <= r.y + 1) { P.y = r.y; P.vy = 0; P.onGround = true; }
+      else if (P.vy < 0) { P.y = r.y + r.h + h; P.vy = 0; if (r.isBlock) hitBlock(r); }
+    }
+  }
+  if (P.y >= GROUND) { P.y = GROUND; P.vy = 0; P.onGround = true; }
+
+  P.walkT += dt * Math.abs(P.vx) / 10;
+}
+
+function updateWorld(dt) {
+  const hw = 7 * P.scale, h = 52 * P.scale, bodyY = P.y - h * 0.5;
+  // kalpler
+  for (const hr of hearts) {
+    if (hr.got) continue;
+    if (Math.abs(hr.x - P.x) < hw + 8 && hr.y > P.y - h - 5 && hr.y < P.y + 5) {
+      hr.got = true; love += 10; heartsGot++;
+      burst(hr.x, hr.y, 6, HC.concat(['#ffffff']), 50);
+    }
+  }
+  // mantarlar
+  for (const m of mushrooms) {
+    m.t += dt;
+    if (m.t < 0.5) m.y = lerp(m.y0, m.home, easeOut(m.t / 0.5));
+    else {
+      const dx = P.x - m.x, dy = bodyY - m.y, d = Math.hypot(dx, dy);
+      if (d < 120 && state === 'play') { const sp = 120 + (120 - d); m.x += dx / d * sp * dt; m.y += dy / d * sp * dt; }
+      else m.y = m.home + Math.sin(T * 3 + m.ph) * 2;
+      if (d < 12 + 7 * P.scale) eatMushroom(m);
+    }
+  }
+  mushrooms = mushrooms.filter(m => !m.dead);
+  // büyürken parıltı
+  if (Math.abs(P.target - P.scale) > 0.01) {
+    parts.push({ type: 'spark', x: P.x + rand(-14, 14), y: P.y - rand(0, h), vx: rand(-20, 20), vy: rand(-40, -10), g: 0, life: 0.6, max: 0.6, col: pick(['#ffd23a', '#ff7eb6', '#fff']), sz: 2 });
+  }
+  blocks.forEach(b => { b.bump = Math.max(0, b.bump - dt * 5); });
+  stepParts(parts, dt);
+  ftexts.forEach(f => {
+    f.t += dt;
+    if (f.t >= 0 && !f.set) { f.set = true; f.x = P.x; f.y = P.y - h - 12; }
+  });
+  ftexts = ftexts.filter(f => f.t < 1.6);
+}
+
+function updateCamera(dt) {
+  let target = P.x - VW * 0.35;
+  if (state === 'walk' || state === 'hug' || state === 'end') target = (P.x + merve.x) / 2 - VW / 2;
+  target = clamp(target, 0, WORLD_W - VW);
+  camX += (target - camX) * Math.min(1, dt * 6);
+  cam = Math.round(camX);
+}
+
+// Final başlayınca kontroller kilitlenir ve dokunmatik düğmeler gizlenir
+function lockControls() {
+  touchMap.clear(); syncVT();
+  kb.left = kb.right = kb.jump = false;
+  $('controls').classList.add('hidden');
+}
+
+function spawnRocket() {
+  rockets.push({ x: rand(30, VW - 30), y: H - 40, vy: rand(-150, -120), t: 0, col: pick(CONF) });
+}
+
+function update(dt) {
+  T += dt; stateT += dt;
+  if (state === 'iris') {
+    updatePlayer(dt, 0, false, false); updateWorld(dt);
+    if (stateT > 1.3) { state = 'play'; stateT = 0; }
+  } else if (state === 'play') {
+    const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    updatePlayer(dt, dir, true, true); updateWorld(dt);
+    if (P.x >= MERVE_X - 95) { state = 'walk'; stateT = 0; lockControls(); }
+  } else if (state === 'walk') {
+    // kontroller kilitli: karakterler birbirine yaklaşır
+    if (merve.x > MERVE_X - 14) merve.x -= 22 * dt;
+    const close = merve.x - P.x <= 35;
+    updatePlayer(dt, close ? 0 : 1, false, true); updateWorld(dt);
+    if (close && merve.x <= MERVE_X - 13) { state = 'hug'; stateT = 0; }
+  } else if (state === 'hug' || state === 'end') {
+    updatePlayer(dt, 0, false, false); updateWorld(dt);
+    confAcc += dt * 55;
+    while (confAcc >= 1) {
+      confAcc--;
+      sparts.push({ type: pick(['conf', 'conf', 'heart', 'star']), x: rand(0, VW), y: -4, vx: rand(-14, 14), vy: rand(35, 75), g: 0, life: 5, max: 5, col: pick(CONF) });
+    }
+    if (stateT > 0.4) { fwAcc += dt; if (fwAcc > 0.5) { fwAcc = 0; spawnRocket(); } }
+    if (state === 'hug' && stateT > 2.2 && !dialogShown) { dialogShown = true; state = 'end'; showDialog(); }
+  }
+  // havai fişek roketleri
+  for (let i = rockets.length - 1; i >= 0; i--) {
+    const r = rockets[i];
+    r.t += dt; r.y += r.vy * dt; r.vy += 90 * dt;
+    sparts.push({ type: 'spark', x: r.x, y: r.y, vx: rand(-6, 6), vy: 20, g: 0, life: 0.35, max: 0.35, col: '#ffe27a', sz: 1 });
+    if (r.vy > -25 || r.y < 30) {
+      burst(r.x, r.y, 30, [r.col, '#ffffff', pick(CONF)], 70, sparts);
+      for (let k = 0; k < 4; k++) sparts.push({ type: 'heart', x: r.x, y: r.y, vx: rand(-45, 45), vy: rand(-50, 10), g: 60, life: 1.4, max: 1.4, col: r.col });
+      rockets.splice(i, 1);
+    }
+  }
+  stepParts(sparts, dt);
+  updateCamera(dt);
+}
+
+/* =====================================================================
+   Çizim
+   ===================================================================== */
+function txt(s, x, y, col, align) {
+  ctx.font = '8px "Press Start 2P", monospace';
+  ctx.textBaseline = 'top'; ctx.textAlign = align || 'left';
+  ctx.fillStyle = '#1a0f3a';
+  ctx.fillText(s, x - 1, y); ctx.fillText(s, x + 1, y); ctx.fillText(s, x, y - 1); ctx.fillText(s, x, y + 1);
+  ctx.fillStyle = col; ctx.fillText(s, x, y);
+}
+function disc(cx, cy, r, col, a) {
+  ctx.globalAlpha = a; ctx.fillStyle = col;
+  for (let y = -r; y < r; y++) { const hw = Math.round(Math.sqrt(r * r - (y + 0.5) * (y + 0.5))); ctx.fillRect(Math.round(cx) - hw, Math.round(cy) + y, hw * 2, 1); }
+  ctx.globalAlpha = 1;
+}
+
+function drawIris(r, cx, cy) {
+  ctx.fillStyle = '#000';
+  const B = 4;
+  for (let y = 0; y < H; y += B) {
+    const dy = y + B / 2 - cy;
+    if (Math.abs(dy) >= r) { ctx.fillRect(0, y, VW, B); continue; }
+    const hw = Math.sqrt(r * r - dy * dy);
+    const x0 = Math.round((cx - hw) / B) * B, x1 = Math.round((cx + hw) / B) * B;
+    if (x0 > 0) ctx.fillRect(0, y, x0, B);
+    if (x1 < VW) ctx.fillRect(x1, y, VW - x1, B);
+  }
+}
+
+function render() {
+  // gökyüzü
+  ctx.drawImage(SPR.sky, 0, 0);
+  for (const s of stars) {
+    const a = 0.45 + 0.55 * Math.abs(Math.sin(T * 1.6 + s.ph));
+    ctx.globalAlpha = a; ctx.fillStyle = s.big ? '#fff6c0' : '#ffffff';
+    if (s.big) { ctx.fillRect(s.x - 1, s.y, 3, 1); ctx.fillRect(s.x, s.y - 1, 1, 3); } else ctx.fillRect(s.x, s.y, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+  // yin-yang
+  ctx.drawImage(SPR.yin[Math.floor(T * 1.4) % 32], VW - 84, 14 + Math.round(Math.sin(T * 0.8) * 2));
+  // bulutlar
+  clouds.forEach(c => {
+    const sp = SPR.clouds[c.s], span = VW + 100;
+    const x = (((c.x - cam * 0.2 + T * c.v) % span) + span) % span - 50;
+    ctx.globalAlpha = 0.5; ctx.drawImage(sp, Math.round(x), c.y); ctx.globalAlpha = 1;
+  });
+  // tepeler
+  ctx.drawImage(SPR.hillFar, -Math.round(cam * 0.12), 0);
+  ctx.drawImage(SPR.hillNear, -Math.round(cam * 0.3), 0);
+  // kale
+  ctx.drawImage(SPR.castle, CASTLE_X - cam, GROUND - 112);
+  // zemin
+  for (let x = -(cam % 16); x < VW; x += 16) ctx.drawImage(SPR.ground, x, GROUND);
+  // borular
+  pipes.forEach(p => { if (p.x - cam < VW && p.x - cam > -40) ctx.drawImage(p.spr, p.x - cam, p.y); });
+  // kalpler
+  hearts.forEach(h => {
+    if (h.got || h.x - cam < -12 || h.x - cam > VW + 12) return;
+    ctx.drawImage(SPR.heart, Math.round(h.x - 5 - cam), Math.round(h.y - 5 + Math.sin(T * 3 + h.ph) * 2));
+  });
+  // mantarlar (blokların arkasından çıkar)
+  mushrooms.forEach(m => ctx.drawImage(SPR.mush, Math.round(m.x - 7 - cam), Math.round(m.y - 6)));
+  // bloklar
+  blocks.forEach((b, i) => {
+    const off = Math.round(-Math.sin(b.bump * Math.PI) * 5), bx = b.x - cam;
+    ctx.drawImage(b.used ? SPR.used : (Math.floor(T * 4 + i) % 3 === 0 ? SPR.q1 : SPR.q0), bx, b.y + off);
+    if (!b.used && Math.floor(T * 2.5 + i) % 3 === 0) { ctx.fillStyle = '#fff'; ctx.fillRect(bx + 13, b.y + 1, 1, 3); ctx.fillRect(bx + 12, b.y + 2, 3, 1); }
+  });
+  // Merve
+  drawMerve(merve.x - cam, GROUND, T, merve.hop, -1);
+  // Mario
+  const air = !P.onGround, pose = air ? 1 : (Math.abs(P.vx) > 8 ? [0, 1, 2, 1][Math.floor(P.walkT) % 4] : 1);
+  const spr = marioSprite(air, pose), s = P.scale;
+  const dw = Math.round(48 * s), dh = Math.round(70 * s), dy = Math.round(P.y - 66 * s);
+  if (P.face < 0) {
+    ctx.save(); ctx.translate(Math.round(P.x - cam), 0); ctx.scale(-1, 1);
+    ctx.drawImage(spr, -Math.round(24 * s), dy, dw, dh); ctx.restore();
+  } else ctx.drawImage(spr, Math.round(P.x - cam - 24 * s), dy, dw, dh);
+  // dünya parçacıkları
+  parts.forEach(p => drawPart(p, cam));
+  // kayan yazılar
+  ftexts.forEach(f => {
+    if (f.t < 0) return;
+    const w = f.s.length * 8, x = clamp(f.x - cam, w / 2 + 4, VW - w / 2 - 4);
+    ctx.globalAlpha = clamp((1.6 - f.t) * 2.5, 0, 1);
+    txt(f.s, Math.round(x), Math.max(22, Math.round(f.y - f.t * 22)), f.t % 0.4 < 0.2 ? '#ffd23a' : '#ff9ad0', 'center');
+    ctx.globalAlpha = 1;
+  });
+  // final: büyük kalp
+  if (state === 'hug' || state === 'end') {
+    const p = clamp(stateT / 1.6, 0, 1), sc = 3 + (p >= 1 ? Math.sin(T * 6) * 0.2 : 0);
+    const hx = (P.x + merve.x) / 2 - cam, hy = lerp(118, 74, easeOut(p)), w = 11 * sc, h = 10 * sc;
+    disc(hx, hy, 22 + Math.sin(T * 5) * 2, '#ff8ac0', 0.2);
+    disc(hx, hy, 15, '#ffc0e0', 0.18);
+    ctx.drawImage(SPR.heart, Math.round(hx - w / 2), Math.round(hy - h / 2), Math.round(w), Math.round(h));
+  }
+  // arayüz
+  ctx.drawImage(SPR.heart, 6, 6);
+  txt(String(love).padStart(4, '0'), 21, 7, '#ffffff');
+  const prog = clamp((P.x - 40) / (MERVE_X - 40 - 40), 0, 1);
+  ctx.fillStyle = '#1a0f3a'; ctx.fillRect(VW - 92, 7, 76, 8);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(VW - 91, 8, 74, 6);
+  ctx.fillStyle = '#2b1a6e'; ctx.fillRect(VW - 90, 9, 72, 4);
+  ctx.fillStyle = '#ff6fae'; ctx.fillRect(VW - 90, 9, Math.round(72 * prog), 4);
+  ctx.drawImage(SPR.heart, VW - 17, 4);
+  // ekran parçacıkları (konfeti ve havai fişek)
+  sparts.forEach(p => drawPart(p, 0));
+  // açılış perdesi
+  if (state === 'iris') {
+    const r = 6 + easeOut(stateT / 1.1) * 360;
+    if (stateT < 1.1) drawIris(r, P.x - cam, P.y - 26);
+  }
+}
+
+function present() {
+  sctx.imageSmoothingEnabled = false;
+  sctx.webkitImageSmoothingEnabled = false;
+  sctx.drawImage(buf, 0, 0, VW, H, 0, 0, screenC.width, screenC.height);
+}
+
+/* =====================================================================
+   Final kutusu
+   ===================================================================== */
+const dlg = $('dialog'), tOn = dlg.querySelector('.on'), tOff = dlg.querySelector('.off'), againBtn = $('again');
+let tw = null;
+function showDialog() {
+  const msg = CONFIG.finalMessage;
+  $('dTitle').textContent = CONFIG.finalTitle;
+  againBtn.textContent = '[ ' + CONFIG.againButton + ' ]';
+  againBtn.classList.remove('show');
+  tOn.textContent = ''; tOff.textContent = msg;
+  $('dText').classList.toggle('hidden', !msg);
+  dlg.classList.remove('hidden');
+  clearInterval(tw);
+  if (!msg) { dlg.classList.remove('typing'); setTimeout(() => againBtn.classList.add('show'), 900); return; }
+  dlg.classList.add('typing');
+  let i = 0;
+  tw = setInterval(() => {
+    i++;
+    tOn.textContent = msg.slice(0, i); tOff.textContent = msg.slice(i);
+    if (i >= msg.length) { clearInterval(tw); dlg.classList.remove('typing'); againBtn.classList.add('show'); }
+  }, 55);
+}
+againBtn.addEventListener('click', () => {
+  clearInterval(tw);
+  dlg.classList.add('hidden');
+  resetGame(); state = 'iris'; stateT = 0;
+  if (touchMode) $('controls').classList.remove('hidden');
+  ensureAudio();
+});
+
+/* =====================================================================
+   Yerleşim ve ana döngü
+   ===================================================================== */
+const touchMode = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight, app = $('app');
+  app.style.height = h + 'px';
+  const portrait = h > w;
+  const reserve = portrait && touchMode ? Math.min(180, h * 0.25) : 0;
+  const availH = h - reserve;
+  VW = w / Math.max(availH, 1) < 1.2 ? 216 : 320;
+  if (buf.width !== VW) { buf.width = VW; ctx.imageSmoothingEnabled = false; }
+  let cw = w, ch = cw * H / VW;
+  if (ch > availH) { ch = availH; cw = ch * VW / H; }
+  const left = (w - cw) / 2, top = Math.max(0, (availH - ch) / 2 + (portrait ? 12 : 0));
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  screenC.style.left = left + 'px'; screenC.style.top = top + 'px';
+  screenC.style.width = cw + 'px'; screenC.style.height = ch + 'px';
+  screenC.width = Math.max(VW, Math.round(cw * dpr)); screenC.height = Math.max(H, Math.round(ch * dpr));
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+resize();
+
+let last = 0;
+function loop(ts) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.033, (ts - last) / 1000 || 0.016);
+  last = ts;
+  update(dt); render(); present();
+}
+
+// Açılış ekranı ilk çizim (siyah)
+resetGame();
+sctx.fillStyle = '#000'; sctx.fillRect(0, 0, screenC.width, screenC.height);
+
+$('trust').textContent = CONFIG.introButton;
+$('trust').addEventListener('click', () => {
+  if (started) return;
+  started = true;
+  // ses kilidi bu tıklama anında açılır
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (AC) {
+    try {
+      ac = new AC(); if (ac.state === 'suspended') ac.resume();
+      const sb = ac.createBufferSource(); sb.buffer = ac.createBuffer(1, 1, 22050); sb.connect(ac.destination); sb.start(0);
+    } catch (e) { ac = null; }
+  }
+  const p = audio.play();
+  if (p && p.catch) p.catch(() => startWebMusic());
+  setTimeout(() => { if (!htmlMusicOk()) startWebMusic(); }, 3000);
+  $('intro').classList.add('hidden');
+  resetGame(); state = 'iris'; stateT = 0;
+  if (touchMode) $('controls').classList.remove('hidden');
+  else { const hint = $('hint'); hint.classList.remove('hidden'); setTimeout(() => { hint.style.opacity = 0; }, 9000); }
+  resize();
+  requestAnimationFrame(ts => { last = ts; loop(ts); });
+});
+})();
+</script>
+</body>
+</html>
